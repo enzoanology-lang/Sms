@@ -28,6 +28,11 @@ justify-content: space-between;
 align-items: center;
 padding: 16px 24px;
 border-bottom: 1px solid rgba(0, 255, 0, 0.3);
+background: rgba(0, 0, 0, 0.9);
+backdrop-filter: blur(10px);
+position: sticky;
+top: 0;
+z-index: 100;
 }
 .brand {
 font-size: 22px;
@@ -35,6 +40,7 @@ font-weight: 700;
 }
 .brand .green {
 color: #00ff00;
+text-shadow: 0 0 10px rgba(0, 255, 0, 0.5);
 }
 .brand .white {
 color: #ffffff;
@@ -47,6 +53,7 @@ transition: 0.2s;
 }
 .menu-btn:hover {
 opacity: 0.8;
+transform: scale(1.05);
 }
 /* Hamburger Menu */
 .menu-overlay {
@@ -101,6 +108,21 @@ line-height: 1;
 .close-btn:hover {
 color: #00ff00;
 }
+.user-info-menu {
+padding: 12px 8px;
+border-bottom: 1px solid #333;
+margin-bottom: 8px;
+}
+.user-name {
+color: #00ff00;
+font-weight: bold;
+font-size: 14px;
+}
+.user-phone {
+color: #888;
+font-size: 12px;
+margin-top: 4px;
+}
 .menu-items a {
 display: flex;
 align-items: center;
@@ -126,22 +148,6 @@ font-size: 13px;
 .menu-footer strong {
 color: #00ff00;
 }
-/* User info in menu */
-.user-info-menu {
-padding: 12px 8px;
-border-bottom: 1px solid #333;
-margin-bottom: 8px;
-}
-.user-name {
-color: #00ff00;
-font-weight: bold;
-font-size: 14px;
-}
-.user-phone {
-color: #888;
-font-size: 12px;
-margin-top: 4px;
-}
 /* Main Content */
 .main-content {
 flex: 1;
@@ -153,13 +159,27 @@ padding: 20px;
 }
 /* SMS Box */
 .sms-box {
-background: #18181b;
+background: linear-gradient(135deg, #18181b 0%, #0f0f12 100%);
 border: 2px solid rgba(0, 255, 0, 0.3);
 border-radius: 1rem;
 padding: 2rem;
 width: 100%;
 max-width: 448px;
 box-shadow: 0 20px 40px rgba(0, 255, 0, 0.1);
+transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+.sms-box:hover {
+transform: translateY(-5px);
+box-shadow: 0 25px 50px rgba(0, 255, 0, 0.2);
+}
+/* Welcome Badge */
+.welcome-badge {
+background: linear-gradient(135deg, rgba(0, 255, 0, 0.1), rgba(0, 100, 0, 0.2));
+border-radius: 12px;
+padding: 12px;
+margin-bottom: 20px;
+text-align: center;
+border: 1px solid rgba(0, 255, 0, 0.3);
 }
 /* Credit Line */
 .credit-line {
@@ -196,13 +216,27 @@ color: #9ca3af;
 .flag-icon {
 font-size: 14px;
 }
-.welcome-badge {
-background: linear-gradient(135deg, rgba(0, 255, 0, 0.1), rgba(0, 100, 0, 0.2));
-border-radius: 12px;
-padding: 12px;
-margin-bottom: 20px;
-text-align: center;
-border: 1px solid rgba(0, 255, 0, 0.3);
+/* Animations */
+@keyframes pulse {
+0%, 100% { opacity: 1; }
+50% { opacity: 0.7; }
+}
+.loading {
+animation: pulse 1s infinite;
+}
+/* Success/Error animations */
+@keyframes slideDown {
+from {
+transform: translateY(-20px);
+opacity: 0;
+}
+to {
+transform: translateY(0);
+opacity: 1;
+}
+}
+.status-message {
+animation: slideDown 0.3s ease;
 }
 </style>
 </head>
@@ -222,7 +256,6 @@ border: 1px solid rgba(0, 255, 0, 0.3);
 <div class="menu-title">📱 Menu</div>
 <div class="close-btn" onclick="toggleMenu()">✕</div>
 </div>
-<!-- User Info Section in Menu -->
 <div class="user-info-menu" id="menuUserInfo">
 <div class="user-name" id="menuUsername">Loading...</div>
 <div class="user-phone" id="menuPhone">🇵🇭 Philippines User</div>
@@ -233,7 +266,7 @@ border: 1px solid rgba(0, 255, 0, 0.3);
 </div>
 <div class="menu-footer">
 <div>🇵🇭 Philippines Only</div>
-<strong id="menuBalance">Loading...</strong>
+<strong id="menuBalance">💰 Loading...</strong>
 </div>
 </div>
 <!-- Main Content -->
@@ -246,16 +279,18 @@ border: 1px solid rgba(0, 255, 0, 0.3);
 </h2>
 <p class="text-gray-400 text-sm mt-2">Send SMS to Philippines numbers only 🇵🇭</p>
 </div>
+
 <!-- Welcome Badge -->
 <div class="welcome-badge" id="welcomeBadge">
 <div class="text-green-400 font-semibold" id="welcomeText">Welcome!</div>
 <div class="text-xs text-gray-400 mt-1" id="userDetails">Loading user info...</div>
 </div>
+
 <div class="space-y-5">
 <div>
 <label class="block text-sm font-medium text-gray-300 mb-2">📞 Philippines Mobile Number</label>
 <input type="tel" id="number" placeholder="09XXXXXXXXX" maxlength="11"
-class="w-full px-4 py-3 bg-black border border-green-500/30 rounded-lg focus:border-green-400 focus:outline-none text-white">
+class="w-full px-4 py-3 bg-black border border-green-500/30 rounded-lg focus:border-green-400 focus:outline-none text-white transition-all">
 <div class="phone-hint">
 <span class="flag-icon">🇵🇭</span>
 <span>Valid PH format: 09XX XXX XXXX (11 digits, starts with 09)</span>
@@ -264,25 +299,34 @@ class="w-full px-4 py-3 bg-black border border-green-500/30 rounded-lg focus:bor
 <div>
 <label class="block text-sm font-medium text-gray-300 mb-2">✉️ Message</label>
 <textarea id="message" rows="4" maxlength="160" placeholder="Type your message..."
-class="w-full px-4 py-3 bg-black border border-green-500/30 rounded-lg focus:border-green-400 focus:outline-none text-white resize-none"></textarea>
+class="w-full px-4 py-3 bg-black border border-green-500/30 rounded-lg focus:border-green-400 focus:outline-none text-white resize-none transition-all"></textarea>
 <div class="flex justify-between text-xs text-gray-500 mt-1">
-<span><span id="charCount">0</span>/160</span>
-<span class="text-yellow-500">1 SMS = 2 points</span>
+<span><span id="charCount">0</span>/160 characters</span>
+<span class="text-yellow-500">💎 1 SMS = 2 points</span>
 </div>
 </div>
-<div class="bg-green-900/30 border border-green-500/40 rounded-lg p-3">
-<div class="flex justify-between text-sm">
-<span class="text-gray-300">💰 Your Balance:</span>
-<span class="text-green-400 font-bold" id="balanceDisplay">0 points</span>
+
+<!-- Balance Card -->
+<div class="bg-gradient-to-r from-green-900/30 to-green-800/20 border border-green-500/40 rounded-lg p-4">
+<div class="flex justify-between items-center">
+<div class="flex items-center gap-2">
+<span class="text-xl">💰</span>
+<span class="text-gray-300">Your Balance:</span>
 </div>
-<button onclick="addPoints()" class="text-xs text-green-400 hover:underline mt-1 inline-block">+ Add Points (Demo)</button>
+<span class="text-green-400 font-bold text-xl" id="balanceDisplay">0</span>
+<span class="text-gray-400">points</span>
 </div>
+<button onclick="addPoints()" class="text-xs text-green-400 hover:text-green-300 transition mt-2 inline-flex items-center gap-1">
+<span>➕</span> Add Demo Points (50)
+</button>
+</div>
+
 <button onclick="sendSMS()" id="sendBtn"
-class="w-full bg-green-500 hover:bg-green-600 text-black font-bold py-3 px-4 rounded-lg transition duration-200 flex items-center justify-center space-x-2">
+class="w-full bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-black font-bold py-3 px-4 rounded-lg transition duration-200 flex items-center justify-center space-x-2 shadow-lg hover:shadow-xl">
 <span>📨</span>
 <span>Send SMS</span>
 </button>
-<div id="status" class="text-center text-sm min-h-[24px]"></div>
+<div id="status" class="text-center text-sm min-h-[24px] status-message"></div>
 </div>
 </div>
 
@@ -330,7 +374,7 @@ function checkAuth() {
 // Update all UI elements with user info
 function updateUserInterface(user) {
     // Update welcome badge
-    document.getElementById('welcomeText').innerHTML = `👋 Welcome, ${user.username}!`;
+    document.getElementById('welcomeText').innerHTML = `👋 Welcome back, ${user.username}!`;
     document.getElementById('userDetails').innerHTML = `📧 ${user.email} | 📞 ${user.phone}`;
     
     // Update menu user info
@@ -338,8 +382,8 @@ function updateUserInterface(user) {
     document.getElementById('menuPhone').innerHTML = `📞 ${user.phone}`;
     
     // Update balance display
-    document.getElementById('balanceDisplay').innerHTML = `${user.balance} points`;
-    document.getElementById('menuBalance').innerHTML = `💰 ${user.balance} pts`;
+    document.getElementById('balanceDisplay').innerHTML = user.balance || 0;
+    document.getElementById('menuBalance').innerHTML = `💰 ${user.balance || 0} pts`;
 }
 
 // Update user balance in localStorage
@@ -362,7 +406,7 @@ function updateUserBalance(newBalance) {
     }
 }
 
-// Add points (demo function)
+// Add demo points
 function addPoints() {
     const currentUser = getCurrentUser();
     if (currentUser) {
@@ -370,9 +414,9 @@ function addPoints() {
         updateUserBalance(newBalance);
         
         const status = document.getElementById('status');
-        status.innerHTML = '<span class="text-green-400">✅ Added 50 points! New balance: ' + newBalance + ' points</span>';
+        status.innerHTML = '<span class="text-green-400">✅ +50 points added! New balance: ' + newBalance + ' points</span>';
         setTimeout(() => {
-            if (status.innerHTML.includes('Added')) {
+            if (status.innerHTML.includes('points added')) {
                 status.innerHTML = '';
             }
         }, 3000);
@@ -404,8 +448,15 @@ function isValidPhilippinesNumber(phone) {
 }
 
 // Character Counter
-document.getElementById('message').addEventListener('input', function(){
-    document.getElementById('charCount').innerText = this.value.length;
+document.getElementById('message').addEventListener('input', function() {
+    const count = this.value.length;
+    document.getElementById('charCount').innerText = count;
+    const charCounter = document.getElementById('charCount');
+    if (count > 140) {
+        charCounter.style.color = '#fbbf24';
+    } else {
+        charCounter.style.color = '#9ca3af';
+    }
 });
 
 // Send SMS Function
@@ -440,7 +491,7 @@ async function sendSMS() {
         } else {
             errorMsg = 'Invalid Philippines mobile prefix. Use valid Globe, Smart, Sun, or DITO prefix.';
         }
-        status.innerHTML = '<span class="text-red-400">❌ ' + errorMsg + ' Only Philippine numbers allowed.</span>';
+        status.innerHTML = '<span class="text-red-400">❌ ' + errorMsg + '</span>';
         return;
     }
     
@@ -453,13 +504,14 @@ async function sendSMS() {
     
     // Check balance (2 points per SMS)
     if (currentBalance < 2) {
-        status.innerHTML = '<span class="text-yellow-400">⚠️ Insufficient balance! <a href="#" onclick="addPoints()" class="underline text-green-400">Add points</a> to send SMS.</span>';
+        status.innerHTML = '<span class="text-yellow-400">⚠️ Insufficient balance! Click "Add Demo Points" to continue.</span>';
         return;
     }
     
     // Disable button and show loading
     button.disabled = true;
     button.innerHTML = '<span>⏳</span><span>Sending...</span>';
+    button.classList.add('loading');
     status.innerHTML = '<span class="text-green-400">📤 Sending message to Philippines number...</span>';
     
     // Simulate SMS sending (since no backend)
@@ -468,7 +520,7 @@ async function sendSMS() {
         const newBalance = currentBalance - 2;
         updateUserBalance(newBalance);
         
-        status.innerHTML = '<span class="text-green-400">✅ Message sent successfully to ' + num + '! (2 points deducted)</span>';
+        status.innerHTML = '<span class="text-green-400">✅ Message sent successfully to ' + formatPhoneNumber(num) + '! (2 points deducted)</span>';
         
         // Clear fields
         document.getElementById('number').value = '';
@@ -485,7 +537,16 @@ async function sendSMS() {
         // Re-enable button
         button.disabled = false;
         button.innerHTML = '<span>📨</span><span>Send SMS</span>';
-    }, 1000);
+        button.classList.remove('loading');
+    }, 1500);
+}
+
+// Format phone number for display
+function formatPhoneNumber(phone) {
+    if (phone.length === 11) {
+        return phone.substring(0, 4) + ' ' + phone.substring(4, 7) + ' ' + phone.substring(7, 11);
+    }
+    return phone;
 }
 
 // Check authentication when page loads
