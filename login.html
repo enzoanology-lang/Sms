@@ -7,7 +7,6 @@
 <script src="https://cdn.tailwindcss.com"></script>
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <style>
-/* Your existing styles remain the same */
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
 * {
 font-family: 'Inter', sans-serif;
@@ -191,16 +190,11 @@ backdrop-filter: blur(4px);
 <span class="text-green-400">Welcome</span> Back
 </h2>
 <p class="text-gray-400 mt-2">Login to your account</p>
-<p class="text-xs text-green-500/70 mt-1">✦ Valid PH mobile number required ✦</p>
 </div>
 <form id="loginForm" class="space-y-5">
 <div>
 <label class="block text-sm font-medium text-gray-300 mb-2">📧 Email or Username</label>
-<input type="text" id="username" name="username" required class="w-full px-4 py-3 bg-black border border-green-500/30 rounded-lg focus:border-green-400 focus:outline-none text-white">
-</div>
-<div>
-<label class="block text-sm font-medium text-gray-300 mb-2">📞 Philippines Mobile Number</label>
-<input type="tel" id="phone" name="phone" maxlength="11" placeholder="09XXXXXXXXX" required class="w-full px-4 py-3 bg-black border border-green-500/30 rounded-lg focus:border-green-400 focus:outline-none text-white">
+<input type="text" id="login_identifier" name="login_identifier" required class="w-full px-4 py-3 bg-black border border-green-500/30 rounded-lg focus:border-green-400 focus:outline-none text-white">
 </div>
 <div>
 <label class="block text-sm font-medium text-gray-300 mb-2">🔒 Password</label>
@@ -231,48 +225,25 @@ document.getElementById('sideMenu').classList.remove('active');
 document.getElementById('menuOverlay').classList.remove('active');
 }
 
-function isValidPhilippinesNumber(phone) {
-    let cleanPhone = phone.replace(/[\s\-\(\)]/g, '');
-    if (!/^09\d{9}$/.test(cleanPhone)) {
-        return false;
-    }
-    const prefix = cleanPhone.substring(0, 4);
-    const validPrefixes = [
-        "0915", "0916", "0917", "0918", "0919", "0920", "0921", "0922", "0923", "0924",
-        "0925", "0926", "0927", "0928", "0929", "0930", "0931", "0932", "0933", "0934",
-        "0935", "0936", "0937", "0938", "0939", "0945", "0946", "0947", "0948", "0949",
-        "0950", "0951", "0956", "0960", "0961", "0965", "0966", "0967", "0970", "0975",
-        "0976", "0977", "0978", "0981", "0989", "0998", "0999", "0905", "0906", "0907",
-        "0908", "0909", "0910", "0911", "0912", "0913", "0914"
-    ];
-    return validPrefixes.includes(prefix);
-}
-
 $(document).ready(function() {
     // Check if already logged in
-    if (localStorage.getItem('sms_user')) {
+    if (localStorage.getItem('current_user')) {
         window.location.href = 'index.html';
         return;
     }
     
-    $('#loginForm').on('submit', async function(e) {
+    $('#loginForm').on('submit', function(e) {
         e.preventDefault();
         
-        const username = $('#username').val().trim();
-        const phone = $('#phone').val().trim();
+        const identifier = $('#login_identifier').val().trim();
         const password = $('#password').val();
         const message = $('#loginMessage');
         const btn = $('#loginBtn');
         
         message.html('');
         
-        if (!username || !phone || !password) {
+        if (!identifier || !password) {
             message.html('<span class="text-red-400">❌ All fields are required</span>');
-            return;
-        }
-        
-        if (!isValidPhilippinesNumber(phone)) {
-            message.html('<span class="text-red-400">❌ Invalid Philippines number! Must be 11 digits starting with 09</span>');
             return;
         }
         
@@ -280,45 +251,38 @@ $(document).ready(function() {
         btn.html('Logging in...');
         message.html('<span class="text-green-400">⏳ Please wait...</span>');
         
-        try {
-            const res = await fetch('login_process.php', {
-                method: 'POST',
-                headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify({
-                    username: username, 
-                    password: password,
-                    phone: phone
-                })
-            });
-            
-            const data = await res.json();
-            
-            if (data.success) {
-                // Store user data in localStorage
-                localStorage.setItem('sms_user', data.username);
-                localStorage.setItem('sms_user_data', JSON.stringify({
-                    id: data.user_id,
-                    username: data.username,
-                    email: data.email,
-                    phone: data.phone,
-                    balance: data.balance || 100
-                }));
+        // Get users from localStorage
+        let users = JSON.parse(localStorage.getItem('users') || '[]');
+        
+        // Find user by username or email
+        const user = users.find(u => 
+            u.username === identifier || 
+            u.email === identifier
+        );
+        
+        // Simulate network delay
+        setTimeout(() => {
+            if (user && user.password === password) {
+                // Store current user session
+                const sessionUser = {
+                    id: user.id,
+                    username: user.username,
+                    email: user.email,
+                    phone: user.phone,
+                    balance: user.balance
+                };
+                localStorage.setItem('current_user', JSON.stringify(sessionUser));
                 
                 message.html('<span class="text-green-400">✅ Login successful! Redirecting...</span>');
                 setTimeout(() => {
                     window.location.href = 'index.html';
                 }, 1500);
             } else {
-                message.html('<span class="text-red-400">❌ ' + (data.message || 'Login failed') + '</span>');
+                message.html('<span class="text-red-400">❌ Invalid username/email or password</span>');
                 btn.prop('disabled', false);
                 btn.html('🔐 Login');
             }
-        } catch(e) {
-            console.error('Login error:', e);
-            message.html('<span class="text-red-400">❌ Connection error! Please try again.</span>');
-            btn.prop('disabled', false);
-            btn.html('🔐 Login');
-        }
+        }, 500);
     });
 });
 </script>
