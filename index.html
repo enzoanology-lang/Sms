@@ -126,6 +126,22 @@ font-size: 13px;
 .menu-footer strong {
 color: #00ff00;
 }
+/* User info in menu */
+.user-info-menu {
+padding: 12px 8px;
+border-bottom: 1px solid #333;
+margin-bottom: 8px;
+}
+.user-name {
+color: #00ff00;
+font-weight: bold;
+font-size: 14px;
+}
+.user-phone {
+color: #888;
+font-size: 12px;
+margin-top: 4px;
+}
 /* Main Content */
 .main-content {
 flex: 1;
@@ -158,50 +174,6 @@ padding: 5px 0;
 color: #00ff00;
 font-weight: 500;
 }
-/* Popup Notification */
-.popup-notification {
-position: fixed;
-top: 20px;
-right: 20px;
-background: #111;
-border: 2px solid #00ff00;
-border-radius: 1rem;
-padding: 1.5rem;
-max-width: 350px;
-box-shadow: 0 10px 30px rgba(0, 255, 0, 0.3);
-z-index: 2000;
-animation: slideIn 0.5s ease, fadeOut 0.5s ease 4.5s forwards;
-}
-@keyframes slideIn {
-from {
-transform: translateX(100%);
-opacity: 0;
-}
-to {
-transform: translateX(0);
-opacity: 1;
-}
-}
-@keyframes fadeOut {
-from {
-opacity: 1;
-}
-to {
-opacity: 0;
-visibility: hidden;
-}
-}
-.close-popup {
-position: absolute;
-top: 10px;
-right: 15px;
-color: #9ca3af;
-cursor: pointer;
-font-size: 20px;
-}
-.close-popup:hover {
-color: #00ff00;
-}
 /* Custom Scrollbar */
 ::-webkit-scrollbar {
 width: 5px;
@@ -224,6 +196,14 @@ color: #9ca3af;
 .flag-icon {
 font-size: 14px;
 }
+.welcome-badge {
+background: linear-gradient(135deg, rgba(0, 255, 0, 0.1), rgba(0, 100, 0, 0.2));
+border-radius: 12px;
+padding: 12px;
+margin-bottom: 20px;
+text-align: center;
+border: 1px solid rgba(0, 255, 0, 0.3);
+}
 </style>
 </head>
 <body>
@@ -242,9 +222,13 @@ font-size: 14px;
 <div class="menu-title">📱 Menu</div>
 <div class="close-btn" onclick="toggleMenu()">✕</div>
 </div>
+<!-- User Info Section in Menu -->
+<div class="user-info-menu" id="menuUserInfo">
+<div class="user-name" id="menuUsername">Loading...</div>
+<div class="user-phone" id="menuPhone">🇵🇭 Philippines User</div>
+</div>
 <div class="menu-items">
-<a href="#" onclick="checkAuthAndRedirect('dashboard')">🏠 Dashboard</a>
-<a href="#" onclick="checkAuthAndRedirect('profile')">👤 Profile</a>
+<a href="index.html">🏠 Dashboard</a>
 <a href="#" onclick="logout()">🚪 Logout</a>
 </div>
 <div class="menu-footer">
@@ -261,6 +245,11 @@ font-size: 14px;
 <span class="text-green-400">SMS</span> Sender
 </h2>
 <p class="text-gray-400 text-sm mt-2">Send SMS to Philippines numbers only 🇵🇭</p>
+</div>
+<!-- Welcome Badge -->
+<div class="welcome-badge" id="welcomeBadge">
+<div class="text-green-400 font-semibold" id="welcomeText">Welcome!</div>
+<div class="text-xs text-gray-400 mt-1" id="userDetails">Loading user info...</div>
 </div>
 <div class="space-y-5">
 <div>
@@ -286,7 +275,7 @@ class="w-full px-4 py-3 bg-black border border-green-500/30 rounded-lg focus:bor
 <span class="text-gray-300">💰 Your Balance:</span>
 <span class="text-green-400 font-bold" id="balanceDisplay">0 points</span>
 </div>
-<a href="add-fund.php" class="text-xs text-green-400 hover:underline mt-1 inline-block">+ Add Points</a>
+<button onclick="addPoints()" class="text-xs text-green-400 hover:underline mt-1 inline-block">+ Add Points (Demo)</button>
 </div>
 <button onclick="sendSMS()" id="sendBtn"
 class="w-full bg-green-500 hover:bg-green-600 text-black font-bold py-3 px-4 rounded-lg transition duration-200 flex items-center justify-center space-x-2">
@@ -304,49 +293,99 @@ class="w-full bg-green-500 hover:bg-green-600 text-black font-bold py-3 px-4 rou
 </div>
 
 <script>
+// Get current user from localStorage
+function getCurrentUser() {
+    const userData = localStorage.getItem('current_user');
+    if (userData) {
+        return JSON.parse(userData);
+    }
+    return null;
+}
+
+// Get all users from localStorage
+function getAllUsers() {
+    return JSON.parse(localStorage.getItem('users') || '[]');
+}
+
+// Save all users
+function saveAllUsers(users) {
+    localStorage.setItem('users', JSON.stringify(users));
+}
+
 // Check if user is logged in
 function checkAuth() {
-    const user = localStorage.getItem('sms_user');
-    const userData = localStorage.getItem('sms_user_data');
+    const currentUser = getCurrentUser();
     
-    if (!user || !userData) {
+    if (!currentUser) {
         // Not logged in, redirect to login
-        window.location.href = 'login.php';
+        window.location.href = 'login.html';
         return false;
     }
     
-    try {
-        const userInfo = JSON.parse(userData);
-        // Update balance display
-        if (userInfo.balance !== undefined) {
-            document.getElementById('balanceDisplay').innerText = userInfo.balance + ' points';
-            document.getElementById('menuBalance').innerHTML = '💰 ' + userInfo.balance + ' pts';
+    // Update UI with user info
+    updateUserInterface(currentUser);
+    return true;
+}
+
+// Update all UI elements with user info
+function updateUserInterface(user) {
+    // Update welcome badge
+    document.getElementById('welcomeText').innerHTML = `👋 Welcome, ${user.username}!`;
+    document.getElementById('userDetails').innerHTML = `📧 ${user.email} | 📞 ${user.phone}`;
+    
+    // Update menu user info
+    document.getElementById('menuUsername').innerHTML = `👤 ${user.username}`;
+    document.getElementById('menuPhone').innerHTML = `📞 ${user.phone}`;
+    
+    // Update balance display
+    document.getElementById('balanceDisplay').innerHTML = `${user.balance} points`;
+    document.getElementById('menuBalance').innerHTML = `💰 ${user.balance} pts`;
+}
+
+// Update user balance in localStorage
+function updateUserBalance(newBalance) {
+    const currentUser = getCurrentUser();
+    if (currentUser) {
+        currentUser.balance = newBalance;
+        localStorage.setItem('current_user', JSON.stringify(currentUser));
+        
+        // Also update in users array
+        let users = getAllUsers();
+        const userIndex = users.findIndex(u => u.id === currentUser.id);
+        if (userIndex !== -1) {
+            users[userIndex].balance = newBalance;
+            saveAllUsers(users);
         }
-        return true;
-    } catch(e) {
-        return false;
+        
+        // Update UI
+        updateUserInterface(currentUser);
+    }
+}
+
+// Add points (demo function)
+function addPoints() {
+    const currentUser = getCurrentUser();
+    if (currentUser) {
+        const newBalance = (currentUser.balance || 0) + 50;
+        updateUserBalance(newBalance);
+        
+        const status = document.getElementById('status');
+        status.innerHTML = '<span class="text-green-400">✅ Added 50 points! New balance: ' + newBalance + ' points</span>';
+        setTimeout(() => {
+            if (status.innerHTML.includes('Added')) {
+                status.innerHTML = '';
+            }
+        }, 3000);
     }
 }
 
 // Logout function
 function logout() {
-    localStorage.removeItem('sms_user');
-    localStorage.removeItem('sms_user_data');
-    window.location.href = 'login.php';
+    localStorage.removeItem('current_user');
+    window.location.href = 'login.html';
 }
 
-// Redirect with auth check
-function checkAuthAndRedirect(page) {
-    if (checkAuth()) {
-        if (page === 'dashboard') {
-            window.location.href = 'index.html';
-        } else if (page === 'profile') {
-            window.location.href = 'profile.php';
-        }
-    }
-}
-
-// Validate Philippines Number (same as registration)
+// Validate Philippines Number
 function isValidPhilippinesNumber(phone) {
     let cleanPhone = phone.replace(/[\s\-\(\)]/g, '');
     if (!/^09\d{9}$/.test(cleanPhone)) {
@@ -369,7 +408,7 @@ document.getElementById('message').addEventListener('input', function(){
     document.getElementById('charCount').innerText = this.value.length;
 });
 
-// Send SMS Function (Philippines Only)
+// Send SMS Function
 async function sendSMS() {
     // Check authentication first
     if (!checkAuth()) {
@@ -380,6 +419,7 @@ async function sendSMS() {
     const msg = document.getElementById('message').value.trim();
     const status = document.getElementById('status');
     const button = document.getElementById('sendBtn');
+    const currentUser = getCurrentUser();
     
     // Clear previous status
     status.innerHTML = '';
@@ -409,13 +449,11 @@ async function sendSMS() {
         return;
     }
     
-    // Get user data
-    const userData = JSON.parse(localStorage.getItem('sms_user_data') || '{}');
-    const currentBalance = userData.balance || 0;
+    const currentBalance = currentUser.balance || 0;
     
     // Check balance (2 points per SMS)
     if (currentBalance < 2) {
-        status.innerHTML = '<span class="text-yellow-400">⚠️ Insufficient balance! <a href="add-fund.php" class="underline text-green-400">Add points</a> to send SMS.</span>';
+        status.innerHTML = '<span class="text-yellow-400">⚠️ Insufficient balance! <a href="#" onclick="addPoints()" class="underline text-green-400">Add points</a> to send SMS.</span>';
         return;
     }
     
@@ -424,57 +462,30 @@ async function sendSMS() {
     button.innerHTML = '<span>⏳</span><span>Sending...</span>';
     status.innerHTML = '<span class="text-green-400">📤 Sending message to Philippines number...</span>';
     
-    try {
-        const res = await fetch('send_sms.php', {
-            method: 'POST',
-            headers: {'Content-Type': 'application/json'},
-            body: JSON.stringify({
-                number: num, 
-                message: msg,
-                user_id: userData.id || userData.user_id
-            })
-        });
+    // Simulate SMS sending (since no backend)
+    setTimeout(() => {
+        // Deduct points (2 per SMS)
+        const newBalance = currentBalance - 2;
+        updateUserBalance(newBalance);
         
-        const data = await res.json();
+        status.innerHTML = '<span class="text-green-400">✅ Message sent successfully to ' + num + '! (2 points deducted)</span>';
         
-        if (data.success) {
-            // Deduct points (2 per SMS)
-            const newBalance = currentBalance - 2;
-            userData.balance = newBalance;
-            localStorage.setItem('sms_user_data', JSON.stringify(userData));
-            
-            // Update display
-            document.getElementById('balanceDisplay').innerText = newBalance + ' points';
-            document.getElementById('menuBalance').innerHTML = '💰 ' + newBalance + ' pts';
-            
-            status.innerHTML = '<span class="text-green-400">✅ Message sent successfully to ' + num + '!</span>';
-            
-            // Clear fields
-            document.getElementById('number').value = '';
-            document.getElementById('message').value = '';
-            document.getElementById('charCount').innerText = '0';
-            
-            // Clear status after 3 seconds
-            setTimeout(() => {
-                if (status.innerHTML.includes('successfully')) {
-                    status.innerHTML = '';
-                }
-            }, 3000);
-        } else {
-            if (data.error === 'insufficient_balance') {
-                status.innerHTML = '<span class="text-yellow-400">⚠️ Insufficient balance! <a href="add-fund.php" class="underline text-green-400">Add points</a></span>';
-            } else {
-                status.innerHTML = '<span class="text-red-400">❌ ' + (data.message || 'Failed to send SMS') + '</span>';
+        // Clear fields
+        document.getElementById('number').value = '';
+        document.getElementById('message').value = '';
+        document.getElementById('charCount').innerText = '0';
+        
+        // Clear status after 3 seconds
+        setTimeout(() => {
+            if (status.innerHTML.includes('sent successfully')) {
+                status.innerHTML = '';
             }
-        }
-    } catch (e) {
-        console.error('Send SMS error:', e);
-        status.innerHTML = '<span class="text-red-400">❌ Connection error! Please check your internet and try again.</span>';
-    } finally {
+        }, 3000);
+        
         // Re-enable button
         button.disabled = false;
         button.innerHTML = '<span>📨</span><span>Send SMS</span>';
-    }
+    }, 1000);
 }
 
 // Check authentication when page loads
@@ -482,7 +493,6 @@ $(document).ready(function() {
     console.log("Dashboard loading - checking authentication...");
     
     if (!checkAuth()) {
-        // Redirect will happen in checkAuth()
         return;
     }
     
@@ -512,14 +522,12 @@ $(document).ready(function() {
         }
     });
     
-    // Welcome message
-    const userData = JSON.parse(localStorage.getItem('sms_user_data') || '{}');
-    if (userData.username) {
-        console.log(`Welcome back, ${userData.username}!`);
-        // Optional: Show welcome popup
+    // Show welcome message
+    const currentUser = getCurrentUser();
+    if (currentUser) {
         setTimeout(() => {
             const status = document.getElementById('status');
-            status.innerHTML = '<span class="text-green-400">👋 Welcome back, ' + userData.username + '! Ready to send SMS?</span>';
+            status.innerHTML = '<span class="text-green-400">👋 Welcome back, ' + currentUser.username + '! Ready to send SMS?</span>';
             setTimeout(() => {
                 if (status.innerHTML.includes('Welcome back')) {
                     status.innerHTML = '';
