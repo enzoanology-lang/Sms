@@ -1,36 +1,21 @@
 <?php
-// register_process.php
+// Enable CORS for Render
+header("Access-Control-Allow-Origin: *");
+header("Access-Control-Allow-Methods: POST, GET, OPTIONS");
+header("Access-Control-Allow-Headers: Content-Type");
 header('Content-Type: application/json');
+
+// Handle preflight requests
+if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
+    http_response_code(200);
+    exit();
+}
 
 // Enable error reporting for debugging
 error_reporting(E_ALL);
 ini_set('display_errors', 1);
 
-// Log all received data for debugging
-error_log("=== New Registration Attempt ===");
-error_log("POST data: " . print_r($_POST, true));
-
-// Get POST data (this will work with FormData)
-$username = isset($_POST['username']) ? trim($_POST['username']) : '';
-$email = isset($_POST['email']) ? trim($_POST['email']) : '';
-$phone = isset($_POST['phone']) ? trim($_POST['phone']) : '';
-$age = isset($_POST['age']) ? intval($_POST['age']) : 0;
-$password = isset($_POST['password']) ? $_POST['password'] : '';
-
-// Log extracted values
-error_log("Extracted - Username: '$username', Email: '$email', Phone: '$phone', Age: $age");
-
-// Check if data was received
-if (empty($username) && empty($email) && empty($phone)) {
-    echo json_encode([
-        'success' => false, 
-        'message' => 'No data received. Please fill out the form.',
-        'received' => $_POST
-    ]);
-    exit;
-}
-
-// Validate Philippines number
+// Function to validate Philippines mobile number
 function isValidPhilippinesNumber($phone) {
     $cleanPhone = preg_replace('/[\s\-\(\)]/', '', $phone);
     if (!preg_match('/^09\d{9}$/', $cleanPhone)) {
@@ -46,11 +31,41 @@ function isValidPhilippinesNumber($phone) {
         "0976", "0977", "0978", "0981", "0989", "0998", "0999", "0905", "0906", "0907",
         "0908", "0909", "0910", "0911", "0912", "0913", "0914"
     ];
-    
     return in_array($prefix, $validPrefixes);
 }
 
-// Server-side validation
+// Get data from different sources
+$username = '';
+$email = '';
+$phone = '';
+$age = 0;
+$password = '';
+
+// Check if data is sent via POST (FormData)
+if (!empty($_POST)) {
+    $username = isset($_POST['username']) ? trim($_POST['username']) : '';
+    $email = isset($_POST['email']) ? trim($_POST['email']) : '';
+    $phone = isset($_POST['phone']) ? trim($_POST['phone']) : '';
+    $age = isset($_POST['age']) ? intval($_POST['age']) : 0;
+    $password = isset($_POST['password']) ? $_POST['password'] : '';
+}
+// Check if data is sent via JSON
+else {
+    $raw_input = file_get_contents('php://input');
+    $json_data = json_decode($raw_input, true);
+    if ($json_data) {
+        $username = isset($json_data['username']) ? trim($json_data['username']) : '';
+        $email = isset($json_data['email']) ? trim($json_data['email']) : '';
+        $phone = isset($json_data['phone']) ? trim($json_data['phone']) : '';
+        $age = isset($json_data['age']) ? intval($json_data['age']) : 0;
+        $password = isset($json_data['password']) ? $json_data['password'] : '';
+    }
+}
+
+// Debug log (optional - remove in production)
+error_log("Register attempt - Username: $username, Email: $email, Phone: $phone");
+
+// Validate data
 if (empty($username)) {
     echo json_encode(['success' => false, 'message' => 'Username is required']);
     exit;
@@ -91,23 +106,18 @@ if (!isValidPhilippinesNumber($phone)) {
     exit;
 }
 
-// ============================================
-// SUCCESS! Data is valid
-// ============================================
-error_log("✅ Registration validation passed for: $username");
-
-// TODO: Add your database connection here
-// For now, return success for testing
+// TODO: Add database connection here
+// For now, we'll simulate successful registration
+// In production, you would save to a database
 
 echo json_encode([
-    'success' => true, 
-    'message' => 'Registration successful! Check your email for OTP.',
-    'data_received' => [
+    'success' => true,
+    'message' => 'Registration successful! You can now login.',
+    'user' => [
         'username' => $username,
         'email' => $email,
         'phone' => $phone,
         'age' => $age
     ]
 ]);
-exit;
 ?>
