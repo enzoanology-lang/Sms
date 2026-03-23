@@ -7,7 +7,6 @@
 <script src="https://cdn.tailwindcss.com"></script>
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <style>
-/* Your existing styles remain the same */
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
 * {
 font-family: 'Inter', sans-serif;
@@ -185,7 +184,7 @@ font-size: 14px;
 </div>
 <div class="flex-1 text-center">
 <div class="w-8 h-8 mx-auto rounded-full flex items-center justify-center font-bold bg-zinc-700 text-gray-400">2</div>
-<p class="text-xs mt-1 text-gray-500">Verify Email</p>
+<p class="text-xs mt-1 text-gray-500">Login</p>
 </div>
 </div>
 <div>
@@ -197,7 +196,6 @@ font-size: 14px;
 <div>
 <label class="block text-sm font-medium text-gray-300 mb-2">👤 Username</label>
 <input type="text" id="username" name="username" required class="w-full px-4 py-3 bg-black border border-green-500/30 rounded-lg focus:border-green-400 focus:outline-none text-white">
-<div class="text-xs text-gray-500 mt-1">Username must be unique</div>
 </div>
 <div>
 <label class="block text-sm font-medium text-gray-300 mb-2">📧 Email</label>
@@ -227,7 +225,7 @@ font-size: 14px;
 <div id="registerMessage" class="text-center text-sm min-h-[24px]"></div>
 <button type="submit" id="registerBtn" class="w-full bg-green-500 hover:bg-green-600 text-black font-bold py-3 px-4 rounded-lg transition duration-200 flex items-center justify-center space-x-2">
 <span>📝</span>
-<span>Register & Send OTP</span>
+<span>Register</span>
 </button>
 <p class="text-center text-gray-400 mt-6">
 Already have an account? 
@@ -315,48 +313,43 @@ $(document).ready(function() {
             return;
         }
 
-        const formData = new FormData();
-        formData.append('username', username);
-        formData.append('email', email);
-        formData.append('phone', phone);
-        formData.append('age', age);
-        formData.append('password', password);
+        // Check if username already exists
+        let users = JSON.parse(localStorage.getItem('users') || '[]');
+        if (users.find(u => u.username === username)) {
+            message.html('<span class="text-red-400">❌ Username already exists!</span>');
+            return;
+        }
+        
+        if (users.find(u => u.email === email)) {
+            message.html('<span class="text-red-400">❌ Email already registered!</span>');
+            return;
+        }
+        
+        if (users.find(u => u.phone === phone)) {
+            message.html('<span class="text-red-400">❌ Phone number already registered!</span>');
+            return;
+        }
 
-        btn.prop('disabled', true);
-        btn.html('<span>⏳</span><span>Sending OTP...</span>');
-        message.html('<span class="text-green-400">📤 Sending verification code...</span>');
+        // Save user data
+        const newUser = {
+            id: Date.now(),
+            username: username,
+            email: email,
+            phone: phone,
+            age: age,
+            password: password,
+            balance: 100, // Starting balance
+            created_at: new Date().toISOString()
+        };
+        
+        users.push(newUser);
+        localStorage.setItem('users', JSON.stringify(users));
 
-        $.ajax({
-            url: 'register_process.php',
-            type: 'POST',
-            data: formData,
-            processData: false,
-            contentType: false,
-            dataType: 'json',
-            success: function(response) {
-                if(response.success) {
-                    message.html('<span class="text-green-400">✅ ' + response.message + '</span>');
-                    // Store registration data temporarily
-                    localStorage.setItem('temp_registration', JSON.stringify({
-                        email: email,
-                        username: username
-                    }));
-                    setTimeout(function() {
-                        window.location.href = 'login.html';
-                    }, 1500);
-                } else {
-                    message.html('<span class="text-red-400">❌ ' + (response.message || 'Registration failed') + '</span>');
-                    btn.prop('disabled', false);
-                    btn.html('<span>📝</span><span>Register & Send OTP</span>');
-                }
-            },
-            error: function(xhr, status, error) {
-                console.error("Error:", xhr.responseText);
-                message.html('<span class="text-red-400">❌ Connection error! Please try again.</span>');
-                btn.prop('disabled', false);
-                btn.html('<span>📝</span><span>Register & Send OTP</span>');
-            }
-        });
+        message.html('<span class="text-green-400">✅ Registration successful! Redirecting to login...</span>');
+        
+        setTimeout(function() {
+            window.location.href = 'login.html';
+        }, 1500);
     });
 });
 </script>
