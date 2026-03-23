@@ -1,0 +1,326 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Login - SMS Sender | Philippines Only</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<style>
+/* Your existing styles remain the same */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+* {
+font-family: 'Inter', sans-serif;
+margin: 0;
+padding: 0;
+box-sizing: border-box;
+}
+body {
+background: black;
+color: white;
+min-height: 100vh;
+display: flex;
+flex-direction: column;
+}
+.navbar {
+display: flex;
+justify-content: space-between;
+align-items: center;
+padding: 16px 24px;
+border-bottom: 1px solid rgba(0, 255, 0, 0.3);
+}
+.brand {
+font-size: 22px;
+font-weight: 700;
+}
+.brand .green {
+color: #00ff00;
+}
+.brand .white {
+color: #ffffff;
+}
+.menu-btn {
+font-size: 28px;
+cursor: pointer;
+color: #00ff00;
+transition: 0.2s;
+}
+.menu-btn:hover {
+opacity: 0.8;
+}
+.menu-overlay {
+position: fixed;
+top: 0;
+left: 0;
+width: 100%;
+height: 100%;
+background: rgba(0, 0, 0, 0.7);
+backdrop-filter: blur(4px);
+z-index: 999;
+display: none;
+}
+.menu-overlay.active {
+display: block;
+}
+.menu {
+position: fixed;
+top: 12px;
+right: -300px;
+width: 280px;
+background: #111;
+border: 1px solid #00ff00;
+border-radius: 20px;
+padding: 20px 16px;
+box-shadow: 0 20px 40px rgba(0, 255, 0, 0.2);
+transition: right 0.3s ease;
+z-index: 1000;
+}
+.menu.active {
+right: 12px;
+}
+.menu-header {
+display: flex;
+justify-content: space-between;
+align-items: center;
+border-bottom: 1px solid #333;
+padding-bottom: 12px;
+margin-bottom: 8px;
+}
+.menu-title {
+color: #00ff00;
+font-weight: 700;
+font-size: 18px;
+}
+.close-btn {
+color: #fff;
+font-size: 24px;
+cursor: pointer;
+line-height: 1;
+}
+.close-btn:hover {
+color: #00ff00;
+}
+.menu-items a {
+display: flex;
+align-items: center;
+gap: 12px;
+padding: 12px 8px;
+color: #ddd;
+text-decoration: none;
+border-bottom: 1px solid #222;
+transition: 0.2s;
+}
+.menu-items a:hover {
+background: rgba(0, 255, 0, 0.1);
+color: #00ff00;
+padding-left: 16px;
+}
+.main-content {
+flex: 1;
+display: flex;
+flex-direction: column;
+justify-content: center;
+align-items: center;
+padding: 20px;
+}
+.login-box {
+background: #18181b;
+border: 2px solid rgba(0, 255, 0, 0.3);
+border-radius: 1rem;
+padding: 2rem;
+width: 100%;
+max-width: 448px;
+box-shadow: 0 20px 40px rgba(0, 255, 0, 0.1);
+}
+.credit-line {
+text-align: center;
+font-family: 'Courier New', Courier, monospace;
+font-size: 16px;
+color: #9ca3af;
+margin-top: 30px;
+padding: 5px 0;
+}
+.credit-line span {
+color: #00ff00;
+font-weight: 500;
+}
+.ph-badge {
+background: linear-gradient(135deg, rgba(0, 100, 0, 0.25) 0%, rgba(0, 255, 0, 0.1) 100%);
+border: 1px solid rgba(0, 255, 0, 0.4);
+border-radius: 40px;
+padding: 8px 16px;
+display: inline-flex;
+align-items: center;
+gap: 8px;
+font-size: 13px;
+font-weight: 500;
+color: #4ade80;
+margin-bottom: 20px;
+backdrop-filter: blur(4px);
+}
+</style>
+</head>
+<body>
+<div id="menuOverlay" class="menu-overlay" onclick="closeMenu()"></div>
+<nav class="navbar">
+<div class="brand">
+<span class="green">CUSTOM</span> <span class="white">SMS SENDER</span>
+</div>
+<div class="menu-btn" onclick="toggleMenu()">☰</div>
+</nav>
+<div class="menu" id="sideMenu">
+<div class="menu-header">
+<div class="menu-title">📱 Menu</div>
+<div class="close-btn" onclick="toggleMenu()">✕</div>
+</div>
+<div class="menu-items">
+<a href="index.html">🏠 Home</a>
+<a href="login.html">🔐 Login</a>
+<a href="register.html">📝 Register</a>
+</div>
+</div>
+<div class="main-content">
+<div class="login-box">
+<div class="flex justify-center mb-4">
+<div class="ph-badge">
+<span>🇵🇭</span> PHILIPPINES MOBILE USERS ONLY <span>🇵🇭</span>
+</div>
+</div>
+<div class="text-center mb-6">
+<h2 class="text-3xl font-bold">
+<span class="text-green-400">Welcome</span> Back
+</h2>
+<p class="text-gray-400 mt-2">Login to your account</p>
+<p class="text-xs text-green-500/70 mt-1">✦ Valid PH mobile number required ✦</p>
+</div>
+<form id="loginForm" class="space-y-5">
+<div>
+<label class="block text-sm font-medium text-gray-300 mb-2">📧 Email or Username</label>
+<input type="text" id="username" name="username" required class="w-full px-4 py-3 bg-black border border-green-500/30 rounded-lg focus:border-green-400 focus:outline-none text-white">
+</div>
+<div>
+<label class="block text-sm font-medium text-gray-300 mb-2">📞 Philippines Mobile Number</label>
+<input type="tel" id="phone" name="phone" maxlength="11" placeholder="09XXXXXXXXX" required class="w-full px-4 py-3 bg-black border border-green-500/30 rounded-lg focus:border-green-400 focus:outline-none text-white">
+</div>
+<div>
+<label class="block text-sm font-medium text-gray-300 mb-2">🔒 Password</label>
+<input type="password" id="password" name="password" required class="w-full px-4 py-3 bg-black border border-green-500/30 rounded-lg focus:border-green-400 focus:outline-none text-white">
+</div>
+<div id="loginMessage" class="text-center text-sm min-h-[24px]"></div>
+<button type="submit" id="loginBtn" class="w-full bg-green-500 hover:bg-green-600 text-black font-bold py-3 px-4 rounded-lg transition duration-200">
+🔐 Login
+</button>
+<p class="text-center text-gray-400 mt-4">
+Don't have an account? 
+<a href="register.html" class="text-green-400 hover:underline">Register here</a>
+</p>
+</form>
+</div>
+<div class="credit-line">
+© Developed by <span>Sarwar Sayem</span> | 🇵🇭 Philippines Only
+</div>
+</div>
+
+<script>
+function toggleMenu() {
+document.getElementById('sideMenu').classList.toggle('active');
+document.getElementById('menuOverlay').classList.toggle('active');
+}
+function closeMenu() {
+document.getElementById('sideMenu').classList.remove('active');
+document.getElementById('menuOverlay').classList.remove('active');
+}
+
+function isValidPhilippinesNumber(phone) {
+    let cleanPhone = phone.replace(/[\s\-\(\)]/g, '');
+    if (!/^09\d{9}$/.test(cleanPhone)) {
+        return false;
+    }
+    const prefix = cleanPhone.substring(0, 4);
+    const validPrefixes = [
+        "0915", "0916", "0917", "0918", "0919", "0920", "0921", "0922", "0923", "0924",
+        "0925", "0926", "0927", "0928", "0929", "0930", "0931", "0932", "0933", "0934",
+        "0935", "0936", "0937", "0938", "0939", "0945", "0946", "0947", "0948", "0949",
+        "0950", "0951", "0956", "0960", "0961", "0965", "0966", "0967", "0970", "0975",
+        "0976", "0977", "0978", "0981", "0989", "0998", "0999", "0905", "0906", "0907",
+        "0908", "0909", "0910", "0911", "0912", "0913", "0914"
+    ];
+    return validPrefixes.includes(prefix);
+}
+
+$(document).ready(function() {
+    // Check if already logged in
+    if (localStorage.getItem('sms_user')) {
+        window.location.href = 'index.html';
+        return;
+    }
+    
+    $('#loginForm').on('submit', async function(e) {
+        e.preventDefault();
+        
+        const username = $('#username').val().trim();
+        const phone = $('#phone').val().trim();
+        const password = $('#password').val();
+        const message = $('#loginMessage');
+        const btn = $('#loginBtn');
+        
+        message.html('');
+        
+        if (!username || !phone || !password) {
+            message.html('<span class="text-red-400">❌ All fields are required</span>');
+            return;
+        }
+        
+        if (!isValidPhilippinesNumber(phone)) {
+            message.html('<span class="text-red-400">❌ Invalid Philippines number! Must be 11 digits starting with 09</span>');
+            return;
+        }
+        
+        btn.prop('disabled', true);
+        btn.html('Logging in...');
+        message.html('<span class="text-green-400">⏳ Please wait...</span>');
+        
+        try {
+            const res = await fetch('login_process.php', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({
+                    username: username, 
+                    password: password,
+                    phone: phone
+                })
+            });
+            
+            const data = await res.json();
+            
+            if (data.success) {
+                // Store user data in localStorage
+                localStorage.setItem('sms_user', data.username);
+                localStorage.setItem('sms_user_data', JSON.stringify({
+                    id: data.user_id,
+                    username: data.username,
+                    email: data.email,
+                    phone: data.phone,
+                    balance: data.balance || 100
+                }));
+                
+                message.html('<span class="text-green-400">✅ Login successful! Redirecting...</span>');
+                setTimeout(() => {
+                    window.location.href = 'index.html';
+                }, 1500);
+            } else {
+                message.html('<span class="text-red-400">❌ ' + (data.message || 'Login failed') + '</span>');
+                btn.prop('disabled', false);
+                btn.html('🔐 Login');
+            }
+        } catch(e) {
+            console.error('Login error:', e);
+            message.html('<span class="text-red-400">❌ Connection error! Please try again.</span>');
+            btn.prop('disabled', false);
+            btn.html('🔐 Login');
+        }
+    });
+});
+</script>
+</body>
+</html>

@@ -1,0 +1,543 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SMS Sender - Dashboard | Philippines Only</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+* {
+font-family: 'Inter', sans-serif;
+margin: 0;
+padding: 0;
+box-sizing: border-box;
+}
+body {
+background: black;
+color: white;
+min-height: 100vh;
+display: flex;
+flex-direction: column;
+}
+/* Navbar */
+.navbar {
+display: flex;
+justify-content: space-between;
+align-items: center;
+padding: 16px 24px;
+border-bottom: 1px solid rgba(0, 255, 0, 0.3);
+}
+.brand {
+font-size: 22px;
+font-weight: 700;
+}
+.brand .green {
+color: #00ff00;
+}
+.brand .white {
+color: #ffffff;
+}
+.menu-btn {
+font-size: 28px;
+cursor: pointer;
+color: #00ff00;
+transition: 0.2s;
+}
+.menu-btn:hover {
+opacity: 0.8;
+}
+/* Hamburger Menu */
+.menu-overlay {
+position: fixed;
+top: 0;
+left: 0;
+width: 100%;
+height: 100%;
+background: rgba(0, 0, 0, 0.7);
+backdrop-filter: blur(4px);
+z-index: 999;
+display: none;
+}
+.menu-overlay.active {
+display: block;
+}
+.menu {
+position: fixed;
+top: 12px;
+right: -300px;
+width: 280px;
+background: #111;
+border: 1px solid #00ff00;
+border-radius: 20px;
+padding: 20px 16px;
+box-shadow: 0 20px 40px rgba(0, 255, 0, 0.2);
+transition: right 0.3s ease;
+z-index: 1000;
+}
+.menu.active {
+right: 12px;
+}
+.menu-header {
+display: flex;
+justify-content: space-between;
+align-items: center;
+border-bottom: 1px solid #333;
+padding-bottom: 12px;
+margin-bottom: 8px;
+}
+.menu-title {
+color: #00ff00;
+font-weight: 700;
+font-size: 18px;
+}
+.close-btn {
+color: #fff;
+font-size: 24px;
+cursor: pointer;
+line-height: 1;
+}
+.close-btn:hover {
+color: #00ff00;
+}
+.menu-items a {
+display: flex;
+align-items: center;
+gap: 12px;
+padding: 12px 8px;
+color: #ddd;
+text-decoration: none;
+border-bottom: 1px solid #222;
+transition: 0.2s;
+}
+.menu-items a:hover {
+background: rgba(0, 255, 0, 0.1);
+color: #00ff00;
+padding-left: 16px;
+}
+.menu-footer {
+margin-top: 16px;
+padding-top: 12px;
+border-top: 1px solid #333;
+color: #aaa;
+font-size: 13px;
+}
+.menu-footer strong {
+color: #00ff00;
+}
+/* Main Content */
+.main-content {
+flex: 1;
+display: flex;
+flex-direction: column;
+justify-content: center;
+align-items: center;
+padding: 20px;
+}
+/* SMS Box */
+.sms-box {
+background: #18181b;
+border: 2px solid rgba(0, 255, 0, 0.3);
+border-radius: 1rem;
+padding: 2rem;
+width: 100%;
+max-width: 448px;
+box-shadow: 0 20px 40px rgba(0, 255, 0, 0.1);
+}
+/* Credit Line */
+.credit-line {
+text-align: center;
+font-family: 'Courier New', Courier, monospace;
+font-size: 16px;
+color: #9ca3af;
+margin-top: 30px;
+padding: 5px 0;
+}
+.credit-line span {
+color: #00ff00;
+font-weight: 500;
+}
+/* Popup Notification */
+.popup-notification {
+position: fixed;
+top: 20px;
+right: 20px;
+background: #111;
+border: 2px solid #00ff00;
+border-radius: 1rem;
+padding: 1.5rem;
+max-width: 350px;
+box-shadow: 0 10px 30px rgba(0, 255, 0, 0.3);
+z-index: 2000;
+animation: slideIn 0.5s ease, fadeOut 0.5s ease 4.5s forwards;
+}
+@keyframes slideIn {
+from {
+transform: translateX(100%);
+opacity: 0;
+}
+to {
+transform: translateX(0);
+opacity: 1;
+}
+}
+@keyframes fadeOut {
+from {
+opacity: 1;
+}
+to {
+opacity: 0;
+visibility: hidden;
+}
+}
+.close-popup {
+position: absolute;
+top: 10px;
+right: 15px;
+color: #9ca3af;
+cursor: pointer;
+font-size: 20px;
+}
+.close-popup:hover {
+color: #00ff00;
+}
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+width: 5px;
+}
+::-webkit-scrollbar-track {
+background: #1a1a1a;
+}
+::-webkit-scrollbar-thumb {
+background: #00ff00;
+border-radius: 10px;
+}
+.phone-hint {
+display: flex;
+align-items: center;
+gap: 6px;
+font-size: 12px;
+margin-top: 4px;
+color: #9ca3af;
+}
+.flag-icon {
+font-size: 14px;
+}
+</style>
+</head>
+<body>
+<!-- Overlay -->
+<div id="menuOverlay" class="menu-overlay" onclick="closeMenu()"></div>
+<!-- Navbar -->
+<nav class="navbar">
+<div class="brand">
+<span class="green">CUSTOM</span> <span class="white">SMS SENDER</span>
+</div>
+<div class="menu-btn" onclick="toggleMenu()">☰</div>
+</nav>
+<!-- Hamburger Menu -->
+<div class="menu" id="sideMenu">
+<div class="menu-header">
+<div class="menu-title">📱 Menu</div>
+<div class="close-btn" onclick="toggleMenu()">✕</div>
+</div>
+<div class="menu-items">
+<a href="#" onclick="checkAuthAndRedirect('dashboard')">🏠 Dashboard</a>
+<a href="#" onclick="checkAuthAndRedirect('profile')">👤 Profile</a>
+<a href="#" onclick="logout()">🚪 Logout</a>
+</div>
+<div class="menu-footer">
+<div>🇵🇭 Philippines Only</div>
+<strong id="menuBalance">Loading...</strong>
+</div>
+</div>
+<!-- Main Content -->
+<div class="main-content">
+<!-- SMS Box -->
+<div class="sms-box">
+<div class="text-center mb-8">
+<h2 class="text-3xl font-bold">
+<span class="text-green-400">SMS</span> Sender
+</h2>
+<p class="text-gray-400 text-sm mt-2">Send SMS to Philippines numbers only 🇵🇭</p>
+</div>
+<div class="space-y-5">
+<div>
+<label class="block text-sm font-medium text-gray-300 mb-2">📞 Philippines Mobile Number</label>
+<input type="tel" id="number" placeholder="09XXXXXXXXX" maxlength="11"
+class="w-full px-4 py-3 bg-black border border-green-500/30 rounded-lg focus:border-green-400 focus:outline-none text-white">
+<div class="phone-hint">
+<span class="flag-icon">🇵🇭</span>
+<span>Valid PH format: 09XX XXX XXXX (11 digits, starts with 09)</span>
+</div>
+</div>
+<div>
+<label class="block text-sm font-medium text-gray-300 mb-2">✉️ Message</label>
+<textarea id="message" rows="4" maxlength="160" placeholder="Type your message..."
+class="w-full px-4 py-3 bg-black border border-green-500/30 rounded-lg focus:border-green-400 focus:outline-none text-white resize-none"></textarea>
+<div class="flex justify-between text-xs text-gray-500 mt-1">
+<span><span id="charCount">0</span>/160</span>
+<span class="text-yellow-500">1 SMS = 2 points</span>
+</div>
+</div>
+<div class="bg-green-900/30 border border-green-500/40 rounded-lg p-3">
+<div class="flex justify-between text-sm">
+<span class="text-gray-300">💰 Your Balance:</span>
+<span class="text-green-400 font-bold" id="balanceDisplay">0 points</span>
+</div>
+<a href="add-fund.php" class="text-xs text-green-400 hover:underline mt-1 inline-block">+ Add Points</a>
+</div>
+<button onclick="sendSMS()" id="sendBtn"
+class="w-full bg-green-500 hover:bg-green-600 text-black font-bold py-3 px-4 rounded-lg transition duration-200 flex items-center justify-center space-x-2">
+<span>📨</span>
+<span>Send SMS</span>
+</button>
+<div id="status" class="text-center text-sm min-h-[24px]"></div>
+</div>
+</div>
+
+<!-- Credit Line -->
+<div class="credit-line">
+© Developed by <span>Sarwar Sayem</span> | 🇵🇭 Philippines Only
+</div>
+</div>
+
+<script>
+// Check if user is logged in
+function checkAuth() {
+    const user = localStorage.getItem('sms_user');
+    const userData = localStorage.getItem('sms_user_data');
+    
+    if (!user || !userData) {
+        // Not logged in, redirect to login
+        window.location.href = 'login.php';
+        return false;
+    }
+    
+    try {
+        const userInfo = JSON.parse(userData);
+        // Update balance display
+        if (userInfo.balance !== undefined) {
+            document.getElementById('balanceDisplay').innerText = userInfo.balance + ' points';
+            document.getElementById('menuBalance').innerHTML = '💰 ' + userInfo.balance + ' pts';
+        }
+        return true;
+    } catch(e) {
+        return false;
+    }
+}
+
+// Logout function
+function logout() {
+    localStorage.removeItem('sms_user');
+    localStorage.removeItem('sms_user_data');
+    window.location.href = 'login.php';
+}
+
+// Redirect with auth check
+function checkAuthAndRedirect(page) {
+    if (checkAuth()) {
+        if (page === 'dashboard') {
+            window.location.href = 'index.html';
+        } else if (page === 'profile') {
+            window.location.href = 'profile.php';
+        }
+    }
+}
+
+// Validate Philippines Number (same as registration)
+function isValidPhilippinesNumber(phone) {
+    let cleanPhone = phone.replace(/[\s\-\(\)]/g, '');
+    if (!/^09\d{9}$/.test(cleanPhone)) {
+        return false;
+    }
+    const prefix = cleanPhone.substring(0, 4);
+    const validPrefixes = [
+        "0915", "0916", "0917", "0918", "0919", "0920", "0921", "0922", "0923", "0924",
+        "0925", "0926", "0927", "0928", "0929", "0930", "0931", "0932", "0933", "0934",
+        "0935", "0936", "0937", "0938", "0939", "0945", "0946", "0947", "0948", "0949",
+        "0950", "0951", "0956", "0960", "0961", "0965", "0966", "0967", "0970", "0975",
+        "0976", "0977", "0978", "0981", "0989", "0998", "0999", "0905", "0906", "0907",
+        "0908", "0909", "0910", "0911", "0912", "0913", "0914"
+    ];
+    return validPrefixes.includes(prefix);
+}
+
+// Character Counter
+document.getElementById('message').addEventListener('input', function(){
+    document.getElementById('charCount').innerText = this.value.length;
+});
+
+// Send SMS Function (Philippines Only)
+async function sendSMS() {
+    // Check authentication first
+    if (!checkAuth()) {
+        return;
+    }
+    
+    const num = document.getElementById('number').value.trim();
+    const msg = document.getElementById('message').value.trim();
+    const status = document.getElementById('status');
+    const button = document.getElementById('sendBtn');
+    
+    // Clear previous status
+    status.innerHTML = '';
+    
+    // Validation
+    if (!num || !msg) {
+        status.innerHTML = '<span class="text-red-400">❌ Please fill in all fields!</span>';
+        return;
+    }
+    
+    // Philippines number validation
+    if (!isValidPhilippinesNumber(num)) {
+        let errorMsg = '';
+        if (num.length !== 11) {
+            errorMsg = 'Phone number must be exactly 11 digits.';
+        } else if (!num.startsWith('09')) {
+            errorMsg = 'Philippines number must start with "09".';
+        } else {
+            errorMsg = 'Invalid Philippines mobile prefix. Use valid Globe, Smart, Sun, or DITO prefix.';
+        }
+        status.innerHTML = '<span class="text-red-400">❌ ' + errorMsg + ' Only Philippine numbers allowed.</span>';
+        return;
+    }
+    
+    if (msg.length > 160) {
+        status.innerHTML = '<span class="text-red-400">❌ Message too long! Max 160 characters</span>';
+        return;
+    }
+    
+    // Get user data
+    const userData = JSON.parse(localStorage.getItem('sms_user_data') || '{}');
+    const currentBalance = userData.balance || 0;
+    
+    // Check balance (2 points per SMS)
+    if (currentBalance < 2) {
+        status.innerHTML = '<span class="text-yellow-400">⚠️ Insufficient balance! <a href="add-fund.php" class="underline text-green-400">Add points</a> to send SMS.</span>';
+        return;
+    }
+    
+    // Disable button and show loading
+    button.disabled = true;
+    button.innerHTML = '<span>⏳</span><span>Sending...</span>';
+    status.innerHTML = '<span class="text-green-400">📤 Sending message to Philippines number...</span>';
+    
+    try {
+        const res = await fetch('send_sms.php', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({
+                number: num, 
+                message: msg,
+                user_id: userData.id || userData.user_id
+            })
+        });
+        
+        const data = await res.json();
+        
+        if (data.success) {
+            // Deduct points (2 per SMS)
+            const newBalance = currentBalance - 2;
+            userData.balance = newBalance;
+            localStorage.setItem('sms_user_data', JSON.stringify(userData));
+            
+            // Update display
+            document.getElementById('balanceDisplay').innerText = newBalance + ' points';
+            document.getElementById('menuBalance').innerHTML = '💰 ' + newBalance + ' pts';
+            
+            status.innerHTML = '<span class="text-green-400">✅ Message sent successfully to ' + num + '!</span>';
+            
+            // Clear fields
+            document.getElementById('number').value = '';
+            document.getElementById('message').value = '';
+            document.getElementById('charCount').innerText = '0';
+            
+            // Clear status after 3 seconds
+            setTimeout(() => {
+                if (status.innerHTML.includes('successfully')) {
+                    status.innerHTML = '';
+                }
+            }, 3000);
+        } else {
+            if (data.error === 'insufficient_balance') {
+                status.innerHTML = '<span class="text-yellow-400">⚠️ Insufficient balance! <a href="add-fund.php" class="underline text-green-400">Add points</a></span>';
+            } else {
+                status.innerHTML = '<span class="text-red-400">❌ ' + (data.message || 'Failed to send SMS') + '</span>';
+            }
+        }
+    } catch (e) {
+        console.error('Send SMS error:', e);
+        status.innerHTML = '<span class="text-red-400">❌ Connection error! Please check your internet and try again.</span>';
+    } finally {
+        // Re-enable button
+        button.disabled = false;
+        button.innerHTML = '<span>📨</span><span>Send SMS</span>';
+    }
+}
+
+// Check authentication when page loads
+$(document).ready(function() {
+    console.log("Dashboard loading - checking authentication...");
+    
+    if (!checkAuth()) {
+        // Redirect will happen in checkAuth()
+        return;
+    }
+    
+    // Add real-time validation for phone number
+    $('#number').on('input', function() {
+        const phone = $(this).val().trim();
+        const phoneHint = $('.phone-hint');
+        
+        if (phone.length === 0) {
+            phoneHint.removeClass('text-red-400 text-green-400').addClass('text-gray-500');
+            phoneHint.html('<span class="flag-icon">🇵🇭</span> Valid PH format: 09XX XXX XXXX (11 digits, starts with 09)');
+            $(this).css('border-color', 'rgba(0, 255, 0, 0.3)');
+        } else if (isValidPhilippinesNumber(phone)) {
+            phoneHint.removeClass('text-red-400').addClass('text-green-400');
+            phoneHint.html('<span class="flag-icon">✅</span> Valid Philippines number!');
+            $(this).css('border-color', '#00ff00');
+        } else {
+            phoneHint.removeClass('text-green-400').addClass('text-red-400');
+            if (phone.length !== 11) {
+                phoneHint.html('<span class="flag-icon">⚠️</span> Must be exactly 11 digits (current: ' + phone.length + ')');
+            } else if (!phone.startsWith('09')) {
+                phoneHint.html('<span class="flag-icon">⚠️</span> PH number must start with 09');
+            } else {
+                phoneHint.html('<span class="flag-icon">❌</span> Invalid PH prefix');
+            }
+            $(this).css('border-color', '#ef4444');
+        }
+    });
+    
+    // Welcome message
+    const userData = JSON.parse(localStorage.getItem('sms_user_data') || '{}');
+    if (userData.username) {
+        console.log(`Welcome back, ${userData.username}!`);
+        // Optional: Show welcome popup
+        setTimeout(() => {
+            const status = document.getElementById('status');
+            status.innerHTML = '<span class="text-green-400">👋 Welcome back, ' + userData.username + '! Ready to send SMS?</span>';
+            setTimeout(() => {
+                if (status.innerHTML.includes('Welcome back')) {
+                    status.innerHTML = '';
+                }
+            }, 3000);
+        }, 500);
+    }
+});
+
+function toggleMenu() {
+    document.getElementById('sideMenu').classList.toggle('active');
+    document.getElementById('menuOverlay').classList.toggle('active');
+}
+
+function closeMenu() {
+    document.getElementById('sideMenu').classList.remove('active');
+    document.getElementById('menuOverlay').classList.remove('active');
+}
+</script>
+</body>
+</html>
